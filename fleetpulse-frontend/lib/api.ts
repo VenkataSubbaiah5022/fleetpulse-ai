@@ -20,7 +20,21 @@ export const fetchAPI = async (endpoint: string, options: RequestInit = {}) => {
   }
 };
 
+// Vehicles
 export const getVehicles = () => fetchAPI('/vehicles');
+export const createVehicle = (data: any) => fetchAPI('/vehicles', { method: 'POST', body: JSON.stringify(data) });
+export const updateVehicle = (id: string, data: any) => fetchAPI(`/vehicles/${id}`, { method: 'PUT', body: JSON.stringify(data) });
+export const deleteVehicle = (id: string) => fetchAPI(`/vehicles/${id}`, { method: 'DELETE' });
+
+// Drivers
 export const getDrivers = () => fetchAPI('/drivers');
+export const createDriver = (data: any) => fetchAPI('/drivers', { method: 'POST', body: JSON.stringify(data) });
+export const updateDriver = (id: string, data: any) => fetchAPI(`/drivers/${id}`, { method: 'PUT', body: JSON.stringify(data) });
+export const deleteDriver = (id: string) => fetchAPI(`/drivers/${id}`, { method: 'DELETE' });
+
+// Alerts
 export const getAlerts = () => fetchAPI('/alerts');
+export const resolveAlert = (id: string) => fetchAPI(`/alerts/${id}/resolve`, { method: 'PUT' });
+
+// Analytics
 export const getDashboardKPIs = () => fetchAPI('/analytics');

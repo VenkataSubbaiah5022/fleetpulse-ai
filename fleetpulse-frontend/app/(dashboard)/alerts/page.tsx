@@ -1,66 +1,99 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { getAlerts } from "@/lib/api";
+import { getAlerts, resolveAlert } from "@/lib/api";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { CheckCircle2 } from "lucide-react";
+import { toast } from "sonner";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 
 export default function AlertsPage() {
   const [alerts, setAlerts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
+  const loadAlerts = () => {
+    setLoading(true);
     getAlerts()
       .then(setAlerts)
-      .catch(console.error)
+      .catch((err) => toast.error("Failed to load alerts"))
       .finally(() => setLoading(false));
+  };
+
+  useEffect(() => {
+    loadAlerts();
   }, []);
+
+  const handleResolve = async (id: string) => {
+    try {
+      await resolveAlert(id);
+      toast.success("Alert marked as resolved!");
+      loadAlerts(); // Re-fetch alerts
+    } catch (err: any) {
+      toast.error(err.message || "Failed to resolve alert");
+    }
+  };
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-semibold">System Alerts</h1>
+      <div className="flex items-center justify-between">
+        <h1 className="text-2xl font-semibold">System Alerts</h1>
+      </div>
       
-      <div className="bg-card rounded-2xl shadow-sm border overflow-hidden">
-        <table className="w-full text-sm text-left">
-          <thead className="bg-muted text-muted-foreground uppercase text-xs">
-            <tr>
-              <th className="px-6 py-4 text-left">Severity</th>
-              <th className="px-6 py-4 text-left">Type</th>
-              <th className="px-6 py-4 text-left">Message</th>
-              <th className="px-6 py-4 text-left">Vehicle</th>
-              <th className="px-6 py-4 text-left">Status</th>
-            </tr>
-          </thead>
-          <tbody>
+      <div className="bg-card rounded-xl shadow-sm border overflow-hidden">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Severity</TableHead>
+              <TableHead>Type</TableHead>
+              <TableHead>Message</TableHead>
+              <TableHead>Vehicle</TableHead>
+              <TableHead>Status</TableHead>
+              <TableHead className="text-right">Action</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
             {loading ? (
-              <tr><td colSpan={5} className="text-center py-8">Loading alerts...</td></tr>
+              <TableRow><TableCell colSpan={6} className="text-center py-8">Loading alerts...</TableCell></TableRow>
             ) : alerts.length > 0 ? (
               alerts.map((a) => (
-                <tr key={a._id} className="border-b last:border-0 hover:bg-muted/50 transition">
-                  <td className="px-6 py-4">
-                     <span className={`px-2 py-1 rounded-full text-xs font-semibold ${
-                       a.severity === 'Critical' ? 'bg-red-100 text-red-700' : 
-                       a.severity === 'High' ? 'bg-orange-100 text-orange-700' : 
-                       'bg-yellow-100 text-yellow-700'
-                     }`}>
+                <TableRow key={a._id} className={a.resolved ? 'opacity-50' : ''}>
+                  <TableCell>
+                     <Badge variant={a.severity === 'Critical' ? 'destructive' : a.severity === 'High' ? 'destructive' : 'secondary'}>
                        {a.severity}
-                     </span>
-                  </td>
-                  <td className="px-6 py-4 font-medium">{a.type}</td>
-                  <td className="px-6 py-4">{a.message}</td>
-                  <td className="px-6 py-4">{a.vehicleId?.name || '-'}</td>
-                  <td className="px-6 py-4">
+                     </Badge>
+                  </TableCell>
+                  <TableCell className="font-medium">{a.type}</TableCell>
+                  <TableCell>{a.message}</TableCell>
+                  <TableCell>{a.vehicleId?.name || '-'}</TableCell>
+                  <TableCell>
                     {a.resolved ? (
                       <span className="text-green-600 font-semibold text-xs border border-green-600 px-2 py-1 rounded-full">Resolved</span>
                     ) : (
                       <span className="text-red-600 font-semibold text-xs border border-red-600 px-2 py-1 rounded-full">Active</span>
                     )}
-                  </td>
-                </tr>
+                  </TableCell>
+                  <TableCell className="text-right">
+                    {!a.resolved && (
+                      <Button variant="outline" size="sm" onClick={() => handleResolve(a._id)}>
+                        <CheckCircle2 className="w-4 h-4 mr-2 text-green-600" /> Resolve
+                      </Button>
+                    )}
+                  </TableCell>
+                </TableRow>
               ))
             ) : (
-              <tr><td colSpan={5} className="text-center py-8">No alerts found.</td></tr>
+              <TableRow><TableCell colSpan={6} className="text-center py-8">No alerts found.</TableCell></TableRow>
             )}
-          </tbody>
-        </table>
+          </TableBody>
+        </Table>
       </div>
     </div>
   );
