@@ -15,8 +15,16 @@ app.get("/", (req, res) => {
 });
 
 const vehicleRoutes = require("./routes/vehicle.routes");
+const driverRoutes = require("./routes/driver.routes");
+const alertRoutes = require("./routes/alert.routes");
+const telemetryRoutes = require("./routes/telemetry.routes");
+const analyticsRoutes = require("./routes/analytics.routes");
 
 app.use("/api/vehicles", vehicleRoutes);
+app.use("/api/drivers", driverRoutes);
+app.use("/api/alerts", alertRoutes);
+app.use("/api/telemetry", telemetryRoutes);
+app.use("/api/analytics", analyticsRoutes);
 
 const PORT = process.env.PORT || 5000;
 
